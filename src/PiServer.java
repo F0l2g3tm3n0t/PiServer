@@ -6,9 +6,12 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.json.JSONArray;
 
-public class PiServer {
+
+public class PiServer extends JSONParser{
 	private static String data;
+	private static JSONParser jsonparser = new JSONParser();
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -37,10 +40,8 @@ public class PiServer {
 		ServerSocket serSocket = null;
 		Socket socket =null;
 		DatagramSocket clientSocket = null;
-		try {
-			serSocket = new ServerSocket(10000);
 			try {
-				serSocket = new ServerSocket(9999);
+				serSocket = new ServerSocket(11111);
 				while(true) {
 					try {
 						socket = serSocket.accept();
@@ -71,9 +72,6 @@ public class PiServer {
 				// TODO: handle exception
 				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
 	}
 
 	@SuppressWarnings("resource")
@@ -93,11 +91,16 @@ public class PiServer {
 		            if(data != null){
 		            	 byte[] data_byte = data.getBytes();
 		                 try {
-		         	        InetAddress broadcastIP = InetAddress.getByName("1.1.1.255");
+		         	        //InetAddress broadcastIP = InetAddress.getByName("1.1.1.255");
 		         	        piSocket = new DatagramSocket();
 		                    piSocket.setBroadcast(true);
-		                    DatagramPacket packet = new DatagramPacket(data_byte, data_byte.length, broadcastIP, 10000);
-		                    piSocket.send(packet);
+		                    JSONArray json  = jsonparser.getNeighbor(piSocket.getLocalAddress().getHostAddress());
+		                    if(json.toString() != null) {
+		                    	for(int i = 0; i < json.length(); i++){
+		                    		DatagramPacket packet = new DatagramPacket(data_byte, data_byte.length, InetAddress.getByName(json.get(i).toString()), 11111);
+				                    piSocket.send(packet);
+		                    	}
+		                    }
 		         	        piSocket.close();
 		                 } catch (Exception e) {
 		                    e.printStackTrace();
